@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: kic
+  name: kic-health-service
+spec:
+  ports:
+    - port: 50051
+      targetPort: 50051
+      name: grpc-web
+  selector:
+    app: kic-health
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: kic
+  name: kic-health
+spec:
+  selector:
+    matchLabels:
+      app: kic-health
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      namespace: kic
+      labels:
+        app: kic-health
+    spec:
+      containers:
+        - image: gcr.io/PROJECT_ID/IMAGE:TAG
+          name: kic-health
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 50051
+          env:
+            - name: PORT
+              value: "50051"
+            - name: PRODUCTION
+              value: "true"
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: db-pass
+                  key: db-pass
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: secret-key
+                  key: secret-key
