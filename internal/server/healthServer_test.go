@@ -25,10 +25,6 @@ var client pbhealth.HealthTrackingClient
 
 const testDataPath = "../../test_data"
 
-
-
-
-
 func prepDBForTests(db database.Repository) {
 	healthLogsToAdd :=[]*pbhealth.MentalHealthLog{
 		{
