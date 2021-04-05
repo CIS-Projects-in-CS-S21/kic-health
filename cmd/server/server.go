@@ -41,7 +41,7 @@ func main() {
 		logger.Fatalf("Unable migrate tables to db %v",  err)
 	}
 
-	serv := server.NewHealthService()
+	serv := server.NewHealthService(logger)
 
 	pbhealth.RegisterHealthTrackingServer(grpcServer, serv)
 

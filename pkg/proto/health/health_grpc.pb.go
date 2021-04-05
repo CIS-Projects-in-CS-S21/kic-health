@@ -25,6 +25,10 @@ type HealthTrackingClient interface {
 	DeleteHealthDataForUser(ctx context.Context, in *DeleteHealthDataForUserRequest, opts ...grpc.CallOption) (*DeleteHealthDataForUserResponse, error)
 	//Health data requested to be updated by user is updated, and error is returned if appropriate.
 	UpdateHealthDataForDate(ctx context.Context, in *UpdateHealthDataForDateRequest, opts ...grpc.CallOption) (*UpdateHealthDataForDateResponse, error)
+	// Given user ID, returns a mental health score for a user
+	GetMentalHealthScoreForUser(ctx context.Context, in *GetMentalHealthScoreForUserRequest, opts ...grpc.CallOption) (*GetMentalHealthScoreForUserResponse, error)
+	// Given a date and user ID, return health data log for a specific date
+	GetHealthDataByDate(ctx context.Context, in *GetHealthDataByDateRequest, opts ...grpc.CallOption) (*GetHealthDataByDateResponse, error)
 }
 
 type healthTrackingClient struct {
@@ -71,6 +75,24 @@ func (c *healthTrackingClient) UpdateHealthDataForDate(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *healthTrackingClient) GetMentalHealthScoreForUser(ctx context.Context, in *GetMentalHealthScoreForUserRequest, opts ...grpc.CallOption) (*GetMentalHealthScoreForUserResponse, error) {
+	out := new(GetMentalHealthScoreForUserResponse)
+	err := c.cc.Invoke(ctx, "/kic.health.HealthTracking/GetMentalHealthScoreForUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *healthTrackingClient) GetHealthDataByDate(ctx context.Context, in *GetHealthDataByDateRequest, opts ...grpc.CallOption) (*GetHealthDataByDateResponse, error) {
+	out := new(GetHealthDataByDateResponse)
+	err := c.cc.Invoke(ctx, "/kic.health.HealthTracking/GetHealthDataByDate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // HealthTrackingServer is the server API for HealthTracking service.
 // All implementations must embed UnimplementedHealthTrackingServer
 // for forward compatibility
@@ -83,6 +105,10 @@ type HealthTrackingServer interface {
 	DeleteHealthDataForUser(context.Context, *DeleteHealthDataForUserRequest) (*DeleteHealthDataForUserResponse, error)
 	//Health data requested to be updated by user is updated, and error is returned if appropriate.
 	UpdateHealthDataForDate(context.Context, *UpdateHealthDataForDateRequest) (*UpdateHealthDataForDateResponse, error)
+	// Given user ID, returns a mental health score for a user
+	GetMentalHealthScoreForUser(context.Context, *GetMentalHealthScoreForUserRequest) (*GetMentalHealthScoreForUserResponse, error)
+	// Given a date and user ID, return health data log for a specific date
+	GetHealthDataByDate(context.Context, *GetHealthDataByDateRequest) (*GetHealthDataByDateResponse, error)
 	mustEmbedUnimplementedHealthTrackingServer()
 }
 
@@ -101,6 +127,12 @@ func (UnimplementedHealthTrackingServer) DeleteHealthDataForUser(context.Context
 }
 func (UnimplementedHealthTrackingServer) UpdateHealthDataForDate(context.Context, *UpdateHealthDataForDateRequest) (*UpdateHealthDataForDateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateHealthDataForDate not implemented")
+}
+func (UnimplementedHealthTrackingServer) GetMentalHealthScoreForUser(context.Context, *GetMentalHealthScoreForUserRequest) (*GetMentalHealthScoreForUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMentalHealthScoreForUser not implemented")
+}
+func (UnimplementedHealthTrackingServer) GetHealthDataByDate(context.Context, *GetHealthDataByDateRequest) (*GetHealthDataByDateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetHealthDataByDate not implemented")
 }
 func (UnimplementedHealthTrackingServer) mustEmbedUnimplementedHealthTrackingServer() {}
 
@@ -187,6 +219,42 @@ func _HealthTracking_UpdateHealthDataForDate_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _HealthTracking_GetMentalHealthScoreForUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMentalHealthScoreForUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HealthTrackingServer).GetMentalHealthScoreForUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kic.health.HealthTracking/GetMentalHealthScoreForUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HealthTrackingServer).GetMentalHealthScoreForUser(ctx, req.(*GetMentalHealthScoreForUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _HealthTracking_GetHealthDataByDate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHealthDataByDateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HealthTrackingServer).GetHealthDataByDate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kic.health.HealthTracking/GetHealthDataByDate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HealthTrackingServer).GetHealthDataByDate(ctx, req.(*GetHealthDataByDateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _HealthTracking_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "kic.health.HealthTracking",
 	HandlerType: (*HealthTrackingServer)(nil),
@@ -206,6 +274,14 @@ var _HealthTracking_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateHealthDataForDate",
 			Handler:    _HealthTracking_UpdateHealthDataForDate_Handler,
+		},
+		{
+			MethodName: "GetMentalHealthScoreForUser",
+			Handler:    _HealthTracking_GetMentalHealthScoreForUser_Handler,
+		},
+		{
+			MethodName: "GetHealthDataByDate",
+			Handler:    _HealthTracking_GetHealthDataByDate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
