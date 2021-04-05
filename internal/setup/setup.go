@@ -25,6 +25,8 @@ func DBRepositorySetup(logger *zap.SugaredLogger, dbPrefix string) (database.Rep
 	MongoURI := os.Getenv("MONGO_URI")
 	IsProduction := os.Getenv("PRODUCTION") != ""
 
+	logger.Infof("MongoURI: %v\n", MongoURI)
+
 	ctx := context.Background()
 
 	mongoCtx, cancel := context.WithTimeout(ctx, 10*time.Second)

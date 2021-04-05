@@ -43,6 +43,9 @@ func main() {
 
 	// Adding health log for user
 
+	userRes, err := usersClient.GetUserByUsername(authCtx, &pbusers.GetUserByUsernameRequest{Username: "testuser"})
+	userID := userRes.User.UserID
+
 	addReq :=&pbhealth.AddHealthDataForUserRequest{
 		UserID:   1,
 		NewEntry: &pbhealth.MentalHealthLog{
@@ -53,7 +56,7 @@ func main() {
 			},
 			Score:       5,
 			JournalName: "I am happy!",
-			UserID:      1,
+			UserID:      userID,
 		},
 	}
 
@@ -61,7 +64,7 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot upload mental health log: ", err)
 	}
-	log.Printf("addRess: %v\n", addRes)
+	log.Printf("addRes: %v\n", addRes)
 
 
 	// --------------------------------------
