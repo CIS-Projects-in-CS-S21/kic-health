@@ -65,8 +65,37 @@ func main() {
 		log.Fatal("cannot upload mental health log: ", err)
 	}
 	log.Printf("addRes: %v\n", addRes)
-
-
 	// --------------------------------------
+
+	// Getting all mental health logs for a user
+
+
+	getAllReq := &pbhealth.GetHealthDataForUserRequest{UserID: userID}
+
+	getAllRes, err := client.GetHealthDataForUser(authCtx, getAllReq)
+	if err != nil {
+		log.Fatal("cannot get mental health logs for user: ", err)
+	}
+	log.Printf("getAllRes: %v\n", getAllRes)
+	log.Printf("Logs retrieved: %v\n", getAllRes.HealthData)
+	// -----------------------
+
+
+	// Getting all mental health logs for a user for a specific date
+
+	getAllByDateReq := &pbhealth.GetHealthDataByDateRequest{UserID: userID, LogDate: &pbcommon.Date{
+		Year:  2021,
+		Month: 4,
+		Day:   5,
+	},
+	}
+
+	getAllByDateRes, err := client.GetHealthDataByDate(authCtx, getAllByDateReq)
+	if err != nil {
+		log.Fatal("cannot get mental health logs for user by date: ", err)
+	}
+	log.Printf("getAllByDateRes: %v\n", getAllByDateRes)
+	log.Printf("Logs retrieved: %v\n", getAllByDateRes.HealthData)
+	// -----------------------
 
 }

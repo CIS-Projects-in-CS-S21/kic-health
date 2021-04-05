@@ -49,17 +49,42 @@ func (h *HealthService) GetHealthDataForUser(
 	req *pbhealth.GetHealthDataForUserRequest,
 ) (*pbhealth.GetHealthDataForUserResponse, error) {
 
+	logs, err := h.db.GetAllMentalHealthLogs(ctx, req.UserID)
 
-	return nil, nil
+	if err != nil {
+		h.logger.Infof("%v", err)
+		return &pbhealth.GetHealthDataForUserResponse{
+			HealthData: nil,
+		}, status.Errorf(codes.Internal, "Error getting health data by date")
+	}
+
+	h.logger.Infof("Successfully got mental health log by date: %v\n", logs)
+
+	successRes := &pbhealth.GetHealthDataForUserResponse{HealthData: logs}
+
+
+	return successRes, err
 }
 
 func (h *HealthService) GetHealthDataByDate(
 	ctx context.Context,
 	req *pbhealth.GetHealthDataByDateRequest,
 ) (*pbhealth.GetHealthDataByDateResponse, error) {
+	logs, err := h.db.GetAllMentalHealthLogsByDate(ctx, req.UserID, req.LogDate)
+
+	if err != nil {
+		h.logger.Infof("%v", err)
+		return &pbhealth.GetHealthDataByDateResponse{
+			HealthData: nil,
+		}, status.Errorf(codes.Internal, "Error getting health data by date")
+	}
+
+	h.logger.Infof("Successfully got mental health log by date: %v\n", logs)
+
+	successRes := &pbhealth.GetHealthDataByDateResponse{HealthData: logs}
 
 
-	return nil, nil
+	return successRes, err
 }
 
 func (h *HealthService) GetMentalHealthScoreForUser(

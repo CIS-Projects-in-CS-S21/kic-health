@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	_ "errors"
+	pbcommon "github.com/kic/health/pkg/proto/common"
 	pbhealth "github.com/kic/health/pkg/proto/health"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -46,10 +47,10 @@ func (m *MongoRepository) AddMentalHealthLog(ctx context.Context, healthLog *pbh
 
 }
 
-func (m *MongoRepository) GetAllMentalHealthLog(ctx context.Context, userID int64) ([]*pbhealth.MentalHealthLog, error) {
+func (m *MongoRepository) GetAllMentalHealthLogs(ctx context.Context, userID int64) ([]*pbhealth.MentalHealthLog, error) {
 	toReturn := make([]*pbhealth.MentalHealthLog, 0)
 
-	filter := bson.M{"userID": userID}
+	filter := bson.M{"userid": userID}
 
 	cur, err := m.fileCollection.Find(ctx, filter)
 	if err != nil {
@@ -63,15 +64,12 @@ func (m *MongoRepository) GetAllMentalHealthLog(ctx context.Context, userID int6
 			m.logger.Errorf("Error decoding file: %v", err)
 			return toReturn, err
 		}
-
+		toReturn = append(toReturn, healthLog)
 	}
 
-	return nil, nil
+	return toReturn, err
 }
 
-func (m *MongoRepository) GetAllMentalHealthLogs(ctx context.Context, userID int64) ([]*pbhealth.MentalHealthLog, error) {
-	return nil, nil
-}
 
 func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (int, error) {
 
@@ -79,8 +77,27 @@ func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (in
 	return 0, nil
 }
 
-func (m *MongoRepository) GetAllMentalHealthLogsByDate(ctx context.Context, userID int64) (*pbhealth.MentalHealthLog, error) {
-	return nil, nil
+func (m *MongoRepository) GetAllMentalHealthLogsByDate(ctx context.Context, userID int64, date *pbcommon.Date) ([]*pbhealth.MentalHealthLog, error) {
+	toReturn := make([]*pbhealth.MentalHealthLog, 0)
+
+	filter := bson.M{"userid": userID, "logdate": date}
+
+	cur, err := m.fileCollection.Find(ctx, filter)
+	if err != nil {
+		m.logger.Errorf("Error finding mental health logs: %v", err)
+	}
+
+	for cur.Next(context.Background()) {
+		healthLog := &pbhealth.MentalHealthLog{}
+		err = cur.Decode(healthLog)
+		if err != nil {
+			m.logger.Errorf("Error decoding file: %v", err)
+			return toReturn, err
+		}
+		toReturn = append(toReturn, healthLog)
+	}
+
+	return toReturn, err
 }
 
 

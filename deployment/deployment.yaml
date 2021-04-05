@@ -49,3 +49,8 @@ spec:
                 secretKeyRef:
                   name: secret-key
                   key: secret-key
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-uri
+                  key: mongo-uri
