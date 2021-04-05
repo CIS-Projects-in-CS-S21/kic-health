@@ -2,8 +2,8 @@ package server
 
 import (
 	"context"
-	pbhealth "github.com/kic/health/pkg/proto/health"
 	"github.com/kic/health/pkg/database"
+	pbhealth "github.com/kic/health/pkg/proto/health"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -18,9 +18,30 @@ type HealthService struct {
 
 func NewHealthService(db database.Repository, logger *zap.SugaredLogger) *HealthService {
 	return &HealthService{
+		UnimplementedHealthTrackingServer: pbhealth.UnimplementedHealthTrackingServer{},
 		logger:  logger,
 		db: db,
 	}
+}
+
+func (h *HealthService) AddHealthDataForUser(
+	ctx context.Context,
+	req *pbhealth.AddHealthDataForUserRequest,
+) (*pbhealth.AddHealthDataForUserResponse, error) {
+
+	id, err := h.db.AddMentalHealthLog(ctx, req.NewEntry)
+	if err != nil {
+		h.logger.Infof("%v", err)
+		return &pbhealth.AddHealthDataForUserResponse{
+			Success: false,
+		}, status.Errorf(codes.Internal, "Error adding mental health log to database")
+	}
+
+	h.logger.Infof("Successfully added new mental health log. ID of user: %v\n", id)
+
+	successRes := &pbhealth.AddHealthDataForUserResponse{Success: true}
+
+	return successRes, err
 }
 
 func (h *HealthService) GetHealthDataForUser(
@@ -52,22 +73,3 @@ func (h *HealthService) GetMentalHealthScoreForUser(
 	return res, err
 }
 
-func (h *HealthService) AddHealthDataForUser(
-	ctx context.Context,
-	req *pbhealth.AddHealthDataForUserRequest,
-) (*pbhealth.AddHealthDataForUserResponse, error) {
-
-	id, err := h.db.AddMentalHealthLog(ctx, req.NewEntry)
-	if err != nil {
-		h.logger.Infof("%v", err)
-		return &pbhealth.AddHealthDataForUserResponse{
-			Success: false,
-		}, status.Errorf(codes.Internal, "Error adding mental health log to database")
-	}
-
-	h.logger.Infof("Successfully added new mental health log. ID of user: %v\n", id)
-
-	successRes := &pbhealth.AddHealthDataForUserResponse{Success: true}
-
-	return successRes, err
-}

@@ -22,7 +22,7 @@ func main() {
 	}
 
 
-	repo, mongoClient := setup.DBRepositorySetup(logger, "media")
+	repo, mongoClient := setup.DBRepositorySetup(logger, "health")
 
 	serv := setup.GRPCSetup(logger, repo)
 
