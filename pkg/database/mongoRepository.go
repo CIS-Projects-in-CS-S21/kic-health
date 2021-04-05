@@ -2,14 +2,13 @@ package database
 
 import (
 	"context"
-	"errors"
-	pbcommon "github.com/kic/health/pkg/proto/common"
+	_ "errors"
 	pbhealth "github.com/kic/health/pkg/proto/health"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
-	"strings"
+	_ "strings"
 )
 
 const (
@@ -34,7 +33,16 @@ func (m *MongoRepository) SetCollections(databaseName string) {
 	m.fileCollection = m.client.Database(databaseName).Collection(fileCollectionName)
 }
 
-func (m *MongoRepository) AddMentalHealthLog(ctx context.Context, file *pbhealth.MentalHealthLog) error {
+func (m *MongoRepository) AddMentalHealthLog(ctx context.Context, healthLog *pbhealth.MentalHealthLog) (string, error) {
+	res, err := m.fileCollection.InsertOne(context.TODO(), healthLog)
+	if err != nil {
+		m.logger.Infof("%v", err)
+		return "", err
+	}
+	var toReturn string
+	toReturn = res.InsertedID.(primitive.ObjectID).Hex()
+
+	return toReturn, err
 
 }
 
@@ -61,7 +69,7 @@ func (m *MongoRepository) GetAllMentalHealthLog(ctx context.Context, userID int6
 	return nil, nil
 }
 
-func (m *MongoRepository) GetAllMentalHealthLogsByDate(ctx context.Context, userID int64) (*pbhealth.MentalHealthLog, error) {
+func (m *MongoRepository) GetAllMentalHealthLogs(ctx context.Context, userID int64) ([]*pbhealth.MentalHealthLog, error) {
 	return nil, nil
 }
 
@@ -69,6 +77,10 @@ func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (in
 
 
 	return 0, nil
+}
+
+func (m *MongoRepository) GetAllMentalHealthLogsByDate(ctx context.Context, userID int64) (*pbhealth.MentalHealthLog, error) {
+	return nil, nil
 }
 
 

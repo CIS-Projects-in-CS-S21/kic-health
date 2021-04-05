@@ -33,7 +33,7 @@ func (h *HealthService) GetHealthDataForUser(
 func (h *HealthService) GetHealthDataByDate(
 	ctx context.Context,
 	req *pbhealth.GetHealthDataByDateRequest,
-) (*pbhealth.GetHealthDataForUserResponse, error) {
+) (*pbhealth.GetHealthDataByDateResponse, error) {
 
 
 	return nil, nil

@@ -1,17 +1,15 @@
 package main
 
 import (
-	"net"
+	"context"
 	"os"
 	"os/signal"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"google.golang.org/grpc"
 
+	"github.com/kic/health/internal/setup"
 	"github.com/kic/health/pkg/logging"
-	"github.com/kic/health/internal/server"
-	pbhealth "github.com/kic/health/pkg/proto/health"
 )
 
 func main() {
@@ -23,37 +21,13 @@ func main() {
 		logger = logging.CreateLogger(zapcore.DebugLevel)
 	}
 
-	ListenAddress := ":" + os.Getenv("PORT")
 
-	listener, err := net.Listen("tcp", ListenAddress)
-	if err != nil {
-		logger.Fatalf("Unable to listen on %v: %v", ListenAddress, err)
-	}
+	repo, mongoClient := setup.DBRepositorySetup(logger, "media")
 
-	grpcServer := grpc.NewServer()
+	serv := setup.GRPCSetup(logger, repo)
 
-	if err != nil {
-		logger.Fatalf("Unable connect to db %v",  err)
-	}
-
-
-	if err != nil {
-		logger.Fatalf("Unable migrate tables to db %v",  err)
-	}
-
-	serv := server.NewHealthService(logger)
-
-	pbhealth.RegisterHealthTrackingServer(grpcServer, serv)
-
-	go func() {
-		defer listener.Close()
-		if err := grpcServer.Serve(listener); err != nil {
-			logger.Fatalf("Failed to serve: %v", err)
-		}
-	}()
-
-
-	defer grpcServer.Stop()
+	defer serv.Stop()
+	defer mongoClient.Disconnect(context.Background())
 
 	// the server is listening in a goroutine so hang until we get an interrupt signal
 	c := make(chan os.Signal)
