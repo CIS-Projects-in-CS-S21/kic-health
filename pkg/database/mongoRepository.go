@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
+	"log"
 	_ "strings"
 )
 
@@ -70,13 +71,6 @@ func (m *MongoRepository) GetAllMentalHealthLogs(ctx context.Context, userID int
 	return toReturn, err
 }
 
-
-func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (int, error) {
-
-
-	return 0, nil
-}
-
 func (m *MongoRepository) GetAllMentalHealthLogsByDate(ctx context.Context, userID int64, date *pbcommon.Date) ([]*pbhealth.MentalHealthLog, error) {
 	toReturn := make([]*pbhealth.MentalHealthLog, 0)
 
@@ -98,6 +92,26 @@ func (m *MongoRepository) GetAllMentalHealthLogsByDate(ctx context.Context, user
 	}
 
 	return toReturn, err
+}
+
+func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (float64, error) {
+	logs, err := m.GetAllMentalHealthLogs(ctx, userID)
+	if err != nil {
+		log.Fatal("cannot get mental health logs for user: ", err)
+	}
+	var totalScore float64
+	totalScore = 0
+
+	numLogs := 0
+
+	for _, log := range logs {
+		totalScore += float64(log.Score)
+		numLogs++
+	}
+
+	overallScore := totalScore / float64(numLogs)
+
+	return overallScore, err
 }
 
 

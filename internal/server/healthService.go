@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"log"
 )
 
 type HealthService struct {
@@ -93,8 +94,14 @@ func (h *HealthService) GetMentalHealthScoreForUser(
 ) (*pbhealth.GetMentalHealthScoreForUserResponse, error) {
 	score, err := h.db.GetOverallScore(ctx, req.UserID)
 
-	res := &pbhealth.GetMentalHealthScoreForUserResponse{Score: int32(score)}
+	if err != nil {
+		log.Fatal("cannot get mental overall score for user: ", err)
+	}
+
+	res := &pbhealth.GetMentalHealthScoreForUserResponse{Score: score}
 
 	return res, err
 }
+
+
 

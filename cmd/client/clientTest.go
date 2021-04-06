@@ -54,8 +54,8 @@ func main() {
 				Month: 4,
 				Day:   5,
 			},
-			Score:       5,
-			JournalName: "I am happy!",
+			Score:       1,
+			JournalName: "I am sad!",
 			UserID:      userID,
 		},
 	}
@@ -98,4 +98,16 @@ func main() {
 	log.Printf("Logs retrieved: %v\n", getAllByDateRes.HealthData)
 	// -----------------------
 
+
+	// Getting overall score for user
+	getScoreReq := &pbhealth.GetMentalHealthScoreForUserRequest{UserID: userID}
+	getScoreRes, err := client.GetMentalHealthScoreForUser(authCtx, getScoreReq)
+
+	if err != nil {
+		log.Fatal("cannot get mental health score for user: ", err)
+	}
+	log.Printf("getScoreRes: %v\n", getScoreRes)
+	log.Printf("Mental Health Score: %v\n", getScoreRes.Score)
+
+	// ----------------------
 }
