@@ -114,5 +114,14 @@ func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (fl
 	return overallScore, err
 }
 
+func (m *MongoRepository) DeleteMentalHealthLogs(ctx context.Context, userID int64, date *pbcommon.Date, all bool) ([]*pbhealth.MentalHealthLog, error) {
+
+	return nil, nil
+}
+
+func (m *MongoRepository) UpdateMentalHealthLogs(ctx context.Context, userID int64, date *pbcommon.Date) ([]*pbhealth.MentalHealthLog, error) {
+
+	return nil, nil
+}
 
 
