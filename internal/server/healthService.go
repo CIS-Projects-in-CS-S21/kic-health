@@ -103,5 +103,20 @@ func (h *HealthService) GetMentalHealthScoreForUser(
 	return res, err
 }
 
+func (h *HealthService) DeleteHealthDataForUser(
+	ctx context.Context,
+	req *pbhealth.DeleteHealthDataForUserRequest,
+) (*pbhealth.DeleteHealthDataForUserResponse, error) {
+
+	return nil, nil
+}
+
+func (h *HealthService) UpdateHealthDataForDate(
+	ctx context.Context,
+	req *pbhealth.UpdateHealthDataForDateRequest,
+) (*pbhealth.UpdateHealthDataForDateResponse, error) {
+
+	return nil, nil
+}
 
 
