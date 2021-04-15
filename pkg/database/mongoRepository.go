@@ -114,9 +114,25 @@ func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (fl
 	return overallScore, err
 }
 
-func (m *MongoRepository) DeleteMentalHealthLogs(ctx context.Context, userID int64, date *pbcommon.Date, all bool) ([]*pbhealth.MentalHealthLog, error) {
+func (m *MongoRepository) DeleteMentalHealthLogs(ctx context.Context, userID int64, date *pbcommon.Date, all bool) (uint32, error) {
 
-	return nil, nil
+	var filter bson.M // declaring vbariable
+
+	if all {
+		filter = bson.M{"userid": userID} // filtering by user id and date
+	} else {
+		filter = bson.M{"userid": userID, "logdate": date} // filtering by user id and date
+	}
+
+	res, err := m.fileCollection.DeleteMany(ctx, filter) // deleting all health logs with the given date
+
+	if err != nil {
+		log.Fatal("cannot delete mental health logs for user: ", err)
+	}
+
+	numDeleted := uint32(res.DeletedCount) // getting number of entries deleted
+
+	return numDeleted, err
 }
 
 func (m *MongoRepository) UpdateMentalHealthLogs(ctx context.Context, userID int64, date *pbcommon.Date) ([]*pbhealth.MentalHealthLog, error) {

@@ -107,8 +107,21 @@ func (h *HealthService) DeleteHealthDataForUser(
 	ctx context.Context,
 	req *pbhealth.DeleteHealthDataForUserRequest,
 ) (*pbhealth.DeleteHealthDataForUserResponse, error) {
+	var err error
+	var numDeleted uint32
 
-	return nil, nil
+	switch x := req.Data.(type) {
+	case *pbhealth.DeleteHealthDataForUserRequest_All:
+		numDeleted, err = h.db.DeleteMentalHealthLogs(ctx, req.UserID, nil, x.All)
+		break
+	case *pbhealth.DeleteHealthDataForUserRequest_DateToRemove:
+		numDeleted, err = h.db.DeleteMentalHealthLogs(ctx, req.UserID, x.DateToRemove, true)
+
+	}
+
+	res := &pbhealth.DeleteHealthDataForUserResponse{EntriesDeleted: numDeleted}
+
+	return res, err
 }
 
 func (h *HealthService) UpdateHealthDataForDate(
