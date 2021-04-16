@@ -43,18 +43,20 @@ func main() {
 
 	// Adding health log for user
 
-	userRes, err := usersClient.GetUserByUsername(authCtx, &pbusers.GetUserByUsernameRequest{Username: "testuser"})
+	userRes, err := usersClient.GetUserByUsername(authCtx, &pbusers.GetUserByUsernameRequest{Username: "aszliah"})
 	userID := userRes.User.UserID
 
+	log.Printf("UserID is %v\n", userID)
+
 	addReq :=&pbhealth.AddHealthDataForUserRequest{
-		UserID:   1,
+		UserID:   99,
 		NewEntry: &pbhealth.MentalHealthLog{
 			LogDate:     &pbcommon.Date{
 				Year:  2021,
 				Month: 4,
 				Day:   5,
 			},
-			Score:       1,
+			Score:       4,
 			JournalName: "I am sad!",
 			UserID:      userID,
 		},
@@ -118,17 +120,36 @@ func main() {
 
 
 	// Deleting all mental logs for a user, regardless of date
-	deleteReq := &pbhealth.DeleteHealthDataForUserRequest{
-		UserID: 29,
-		Data:   &pbhealth.DeleteHealthDataForUserRequest_All{true},
-	}
+	//deleteReq := &pbhealth.DeleteHealthDataForUserRequest{
+	//	UserID: 29,
+	//	Data:   &pbhealth.DeleteHealthDataForUserRequest_All{true},
+	//}
+	//
+	//deleteRes, err := client.DeleteHealthDataForUser(authCtx, deleteReq)
+	//
+	//if err != nil {
+	//	log.Fatal("cannot delete mental health score for user: ", err)
+	//}
+	//
+	//log.Printf("deleteRes: %v\n", deleteRes)
+	// -----------------------
 
-	deleteRes, err := client.DeleteHealthDataForUser(authCtx, deleteReq)
+	// Deleting mental health logs for a user, for a specific date
+	//deleteReq2 := &pbhealth.DeleteHealthDataForUserRequest{
+	//	UserID: 29,
+	//	Data:   &pbhealth.DeleteHealthDataForUserRequest_All{true},
+	//}
+	//
+	//deleteRes2, err := client.DeleteHealthDataForUser(authCtx, deleteReq2)
+	//
+	//if err != nil {
+	//	log.Fatal("cannot delete mental health score for user: ", err)
+	//}
+	//
+	//log.Printf("deleteRes: %v\n", deleteRes2)
+	// -----------------------
 
-	if err != nil {
-		log.Fatal("cannot delete mental health score for user: ", err)
-	}
+	// Updating mental health logs for a user
 
-	log.Printf("deleteRes: %v\n", deleteRes)
 	// -----------------------
 }

@@ -96,6 +96,8 @@ func (m *MongoRepository) GetAllMentalHealthLogsByDate(ctx context.Context, user
 
 func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (float64, error) {
 	logs, err := m.GetAllMentalHealthLogs(ctx, userID)
+	log.Printf("Logs fetched for user (ID = %v\n): %v\n", userID, logs)
+
 	if err != nil {
 		log.Fatal("cannot get mental health logs for user: ", err)
 	}
@@ -110,6 +112,10 @@ func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (fl
 	}
 
 	overallScore := totalScore / float64(numLogs)
+
+	log.Printf("Total sum of log scores for user (ID = %v\n): %v\n", userID, totalScore)
+	log.Printf("Number of total logs for user (ID = %v): %v\n:", userID, numLogs)
+	log.Printf("Average score for user (ID = %v): %v\n:", userID, overallScore)
 
 	return overallScore, err
 }
@@ -135,7 +141,9 @@ func (m *MongoRepository) DeleteMentalHealthLogs(ctx context.Context, userID int
 	return numDeleted, err
 }
 
-func (m *MongoRepository) UpdateMentalHealthLogs(ctx context.Context, userID int64, date *pbcommon.Date) ([]*pbhealth.MentalHealthLog, error) {
+func (m *MongoRepository) UpdateMentalHealthLogs(ctx context.Context, userID int64, healthLog *pbhealth.MentalHealthLog) ([]*pbhealth.MentalHealthLog, error) {
+
+
 
 	return nil, nil
 }

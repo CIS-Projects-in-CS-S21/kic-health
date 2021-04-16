@@ -15,5 +15,5 @@ type Repository interface {
 	GetAllMentalHealthLogsByDate(ctx context.Context, userID int64, date *pbcommon.Date) ([]*pbhealth.MentalHealthLog, error)
 	AddMentalHealthLog(ctx context.Context, healthLog *pbhealth.MentalHealthLog) (string, error)
 	DeleteMentalHealthLogs(ctx context.Context, userID int64, date *pbcommon.Date, all bool) (uint32, error)
-	UpdateMentalHealthLogs(ctx context.Context, userID int64, date *pbcommon.Date) ([]*pbhealth.MentalHealthLog, error)
+	UpdateMentalHealthLogs(ctx context.Context, userID int64, healthLog *pbhealth.MentalHealthLog) ([]*pbhealth.MentalHealthLog, error)
 }
