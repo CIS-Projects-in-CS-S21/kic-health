@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"log"
+	"math"
 	_ "strings"
 )
 
@@ -94,7 +95,7 @@ func (m *MongoRepository) GetAllMentalHealthLogsByDate(ctx context.Context, user
 	return toReturn, err
 }
 
-func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (float64, error) {
+func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (int32, error) {
 	logs, err := m.GetAllMentalHealthLogs(ctx, userID)
 	log.Printf("Logs fetched for user (ID = %v\n): %v\n", userID, logs)
 
@@ -111,7 +112,7 @@ func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (fl
 		numLogs++
 	}
 
-	overallScore := totalScore / float64(numLogs)
+	overallScore := int32(math.Round(totalScore / float64(numLogs)))
 
 	log.Printf("Total sum of log scores for user (ID = %v\n): %v\n", userID, totalScore)
 	log.Printf("Number of total logs for user (ID = %v): %v\n:", userID, numLogs)

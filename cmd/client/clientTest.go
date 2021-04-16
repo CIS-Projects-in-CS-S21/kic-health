@@ -43,7 +43,7 @@ func main() {
 
 	// Adding health log for user
 
-	userRes, err := usersClient.GetUserByUsername(authCtx, &pbusers.GetUserByUsernameRequest{Username: "aszliah"})
+	userRes, err := usersClient.GetUserByUsername(authCtx, &pbusers.GetUserByUsernameRequest{Username: "Ryan"})
 	userID := userRes.User.UserID
 
 	log.Printf("UserID is %v\n", userID)
@@ -56,7 +56,7 @@ func main() {
 				Month: 4,
 				Day:   5,
 			},
-			Score:       4,
+			Score:       0,
 			JournalName: "I am sad!",
 			UserID:      userID,
 		},
