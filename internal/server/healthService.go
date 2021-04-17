@@ -136,7 +136,7 @@ func (h *HealthService) UpdateHealthDataForDate(
 		}, status.Errorf(codes.InvalidArgument, "Error updating mental health logs")
 	}
 
-	h.logger.Errorf("Successfully updated mental health log.")
+	h.logger.Infof("Successfully updated mental health log.")
 
 	successRes := &pbhealth.UpdateHealthDataForDateResponse{Success: true}
 
