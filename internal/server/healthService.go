@@ -129,20 +129,19 @@ func (h *HealthService) UpdateHealthDataForDate(
 	req *pbhealth.UpdateHealthDataForDateRequest,
 ) (*pbhealth.UpdateHealthDataForDateResponse, error) {
 
+	err := h.db.UpdateMentalHealthLogs(ctx, req.UserID, req.DesiredLogInfo)
+	if err != nil {
+		h.logger.Infof("%v", err)
+		return &pbhealth.UpdateHealthDataForDateResponse{
+			Success: false,
+		}, status.Errorf(codes.Internal, "Error updating mental health logs")
+	}
 
-	//updatedLogs, err := h.db.UpdateMentalHealthLogs(ctx, req.UserID, req.DesiredLogInfo)
-	//if err != nil {
-	//	h.logger.Infof("%v", err)
-	//	return &pbhealth.UpdateHealthDataForDateResponse{
-	//		Success: false,
-	//	}, status.Errorf(codes.Internal, "Error updating mental health logs")
-	//}
-	//
-	//h.logger.Infof("Successfully updated mental health logs. Logs updated: %v\n", updatedLogs)
-	//
-	//successRes := &pbhealth.UpdateHealthDataForDateResponse{Success: true}
-	//
-	//return successRes, err
+	h.logger.Infof("Successfully updated mental health log.")
+
+	successRes := &pbhealth.UpdateHealthDataForDateResponse{Success: true}
+
+	return successRes, err
 
 	return nil, nil
 }

@@ -39,7 +39,7 @@ func (m *MongoRepository) SetCollections(databaseName string) {
 func (m *MongoRepository) AddMentalHealthLog(ctx context.Context, healthLog *pbhealth.MentalHealthLog) (string, error) {
 	res, err := m.fileCollection.InsertOne(context.TODO(), healthLog)
 	if err != nil {
-		m.logger.Infof("%v", err)
+		m.logger.Infof("Error adding mental health log: %v", err)
 		return "", err
 	}
 	var toReturn string
@@ -112,7 +112,12 @@ func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (in
 		numLogs++
 	}
 
-	overallScore := int32(math.Round(totalScore / float64(numLogs)))
+	var overallScore int32
+	if numLogs == 0 {
+		overallScore = 0
+	} else {
+		overallScore = int32(math.Round(totalScore / float64(numLogs)))
+	}
 
 	log.Printf("Total sum of log scores for user (ID = %v\n): %v\n", userID, totalScore)
 	log.Printf("Number of total logs for user (ID = %v): %v\n:", userID, numLogs)
@@ -142,11 +147,16 @@ func (m *MongoRepository) DeleteMentalHealthLogs(ctx context.Context, userID int
 	return numDeleted, err
 }
 
-func (m *MongoRepository) UpdateMentalHealthLogs(ctx context.Context, userID int64, healthLog *pbhealth.MentalHealthLog) ([]*pbhealth.MentalHealthLog, error) {
+func (m *MongoRepository) UpdateMentalHealthLogs(ctx context.Context, userID int64, healthLog *pbhealth.MentalHealthLog) error {
 
+	filter := bson.M{"userid": userID, "logdate": healthLog.LogDate}
 
+	_, err := m.fileCollection.UpdateOne(ctx, filter, healthLog)
+	if err != nil {
+		m.logger.Infof("Error updating mentalh health log: %v", err)
+	}
 
-	return nil, nil
+	return err
 }
 
 

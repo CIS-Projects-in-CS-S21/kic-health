@@ -43,20 +43,20 @@ func main() {
 
 	// Adding health log for user
 
-	userRes, err := usersClient.GetUserByUsername(authCtx, &pbusers.GetUserByUsernameRequest{Username: "Ryan"})
+	userRes, err := usersClient.GetUserByUsername(authCtx, &pbusers.GetUserByUsernameRequest{Username: "testuser"})
 	userID := userRes.User.UserID
 
 	log.Printf("UserID is %v\n", userID)
 
 	addReq :=&pbhealth.AddHealthDataForUserRequest{
-		UserID:   99,
+		UserID:   userID,
 		NewEntry: &pbhealth.MentalHealthLog{
 			LogDate:     &pbcommon.Date{
 				Year:  2021,
 				Month: 4,
 				Day:   5,
 			},
-			Score:       0,
+			Score:       5,
 			JournalName: "I am sad!",
 			UserID:      userID,
 		},
@@ -151,5 +151,24 @@ func main() {
 
 	// Updating mental health logs for a user
 
+	updateReq := &pbhealth.UpdateHealthDataForDateRequest{
+		UserID:         userID,
+		DesiredLogInfo: &pbhealth.MentalHealthLog{
+			LogDate:     &pbcommon.Date{
+				Year:  2021,
+				Month: 4,
+				Day:   5,
+			},
+			Score:       5,
+			JournalName: "I am so happy!!!!!!",
+			UserID:      userID,
+		},
+	}
+
+	updateRes, err := client.UpdateHealthDataForDate(authCtx, updateReq)
+	if err != nil {
+		log.Fatal("cannot update mental health score for user: ", err)
+	}
+	log.Printf("updateRes: %v\n", updateRes)
 	// -----------------------
 }
