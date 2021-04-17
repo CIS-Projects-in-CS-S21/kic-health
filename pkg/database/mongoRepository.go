@@ -150,8 +150,14 @@ func (m *MongoRepository) DeleteMentalHealthLogs(ctx context.Context, userID int
 func (m *MongoRepository) UpdateMentalHealthLogs(ctx context.Context, userID int64, healthLog *pbhealth.MentalHealthLog) error {
 
 	filter := bson.M{"userid": userID, "logdate": healthLog.LogDate}
+	update := bson.M{
+		"$set": healthLog,
+	}
 
-	_, err := m.fileCollection.UpdateOne(ctx, filter, healthLog)
+	_, err := m.fileCollection.UpdateOne(
+		ctx,
+		filter,
+		update)
 	if err != nil {
 		m.logger.Infof("Error updating mentalh health log: %v", err)
 	}
