@@ -130,7 +130,7 @@ func (h *HealthService) UpdateHealthDataForDate(
 
 	err := h.db.UpdateMentalHealthLogs(ctx, req.UserID, req.DesiredLogInfo)
 	if err != nil {
-		h.logger.Infof("%v", err)
+		h.logger.Errorf("%v", err)
 		return &pbhealth.UpdateHealthDataForDateResponse{
 			Success: false,
 		}, status.Errorf(codes.InvalidArgument, "Error updating mental health logs")
