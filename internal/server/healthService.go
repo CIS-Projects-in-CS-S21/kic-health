@@ -7,7 +7,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"log"
 )
 
 type HealthService struct {
@@ -95,7 +94,7 @@ func (h *HealthService) GetMentalHealthScoreForUser(
 	score, err := h.db.GetOverallScore(ctx, req.UserID)
 
 	if err != nil {
-		log.Fatal("cannot get mental overall score for user: ", err)
+		h.logger.Errorf("cannot get mental overall score for user: %v \n", err)
 	}
 
 	res := &pbhealth.GetMentalHealthScoreForUserResponse{Score: score}
@@ -103,5 +102,47 @@ func (h *HealthService) GetMentalHealthScoreForUser(
 	return res, err
 }
 
+func (h *HealthService) DeleteHealthDataForUser(
+	ctx context.Context,
+	req *pbhealth.DeleteHealthDataForUserRequest,
+) (*pbhealth.DeleteHealthDataForUserResponse, error) {
+	var err error
+	var numDeleted uint32
+
+	switch x := req.Data.(type) {
+	case *pbhealth.DeleteHealthDataForUserRequest_All:
+		numDeleted, err = h.db.DeleteMentalHealthLogs(ctx, req.UserID, nil, x.All)
+		break
+	case *pbhealth.DeleteHealthDataForUserRequest_DateToRemove:
+		numDeleted, err = h.db.DeleteMentalHealthLogs(ctx, req.UserID, x.DateToRemove, false)
+
+	}
+
+	res := &pbhealth.DeleteHealthDataForUserResponse{EntriesDeleted: numDeleted}
+
+	return res, err
+}
+
+func (h *HealthService) UpdateHealthDataForDate(
+	ctx context.Context,
+	req *pbhealth.UpdateHealthDataForDateRequest,
+) (*pbhealth.UpdateHealthDataForDateResponse, error) {
+
+	err := h.db.UpdateMentalHealthLogs(ctx, req.UserID, req.DesiredLogInfo)
+	if err != nil {
+		h.logger.Errorf("%v", err)
+		return &pbhealth.UpdateHealthDataForDateResponse{
+			Success: false,
+		}, status.Errorf(codes.InvalidArgument, "Error updating mental health logs")
+	}
+
+	h.logger.Infof("Successfully updated mental health log.")
+
+	successRes := &pbhealth.UpdateHealthDataForDateResponse{Success: true}
+
+	return successRes, err
+
+	return nil, nil
+}
 
 

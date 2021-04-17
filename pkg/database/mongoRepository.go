@@ -2,15 +2,13 @@ package database
 
 import (
 	"context"
-	_ "errors"
 	pbcommon "github.com/kic/health/pkg/proto/common"
 	pbhealth "github.com/kic/health/pkg/proto/health"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
-	"log"
-	_ "strings"
+	"math"
 )
 
 const (
@@ -38,7 +36,7 @@ func (m *MongoRepository) SetCollections(databaseName string) {
 func (m *MongoRepository) AddMentalHealthLog(ctx context.Context, healthLog *pbhealth.MentalHealthLog) (string, error) {
 	res, err := m.fileCollection.InsertOne(context.TODO(), healthLog)
 	if err != nil {
-		m.logger.Infof("%v", err)
+		m.logger.Errorf("Error adding mental health log: %v", err)
 		return "", err
 	}
 	var toReturn string
@@ -94,10 +92,12 @@ func (m *MongoRepository) GetAllMentalHealthLogsByDate(ctx context.Context, user
 	return toReturn, err
 }
 
-func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (float64, error) {
+func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (int32, error) {
 	logs, err := m.GetAllMentalHealthLogs(ctx, userID)
+	m.logger.Infof("Logs fetched for user (ID = %v\n): %v\n", userID, logs)
+
 	if err != nil {
-		log.Fatal("cannot get mental health logs for user: ", err)
+		m.logger.Errorf("cannot get mental health logs for user: %v \n", err)
 	}
 	var totalScore float64
 	totalScore = 0
@@ -109,10 +109,57 @@ func (m *MongoRepository) GetOverallScore(ctx context.Context, userID int64) (fl
 		numLogs++
 	}
 
-	overallScore := totalScore / float64(numLogs)
+	var overallScore int32
+	if numLogs == 0 {
+		overallScore = 0
+	} else {
+		overallScore = int32(math.Round(totalScore / float64(numLogs)))
+	}
+
+	m.logger.Infof("Total sum of log scores for user (ID = %v\n): %v\n", userID, totalScore)
+	m.logger.Infof("Number of total logs for user (ID = %v): %v\n:", userID, numLogs)
+	m.logger.Infof("Average score for user (ID = %v): %v\n:", userID, overallScore)
 
 	return overallScore, err
 }
 
+func (m *MongoRepository) DeleteMentalHealthLogs(ctx context.Context, userID int64, date *pbcommon.Date, all bool) (uint32, error) {
+
+	var filter bson.M // declaring vbariable
+
+	if all {
+		filter = bson.M{"userid": userID} // filtering by user id and date
+	} else {
+		filter = bson.M{"userid": userID, "logdate": date} // filtering by user id and date
+	}
+
+	res, err := m.fileCollection.DeleteMany(ctx, filter) // deleting all health logs with the given date
+
+	if err != nil {
+		m.logger.Errorf("cannot delete mental health logs for user: %v \n", err)
+	}
+
+	numDeleted := uint32(res.DeletedCount) // getting number of entries deleted
+
+	return numDeleted, err
+}
+
+func (m *MongoRepository) UpdateMentalHealthLogs(ctx context.Context, userID int64, healthLog *pbhealth.MentalHealthLog) error {
+
+	filter := bson.M{"userid": userID, "logdate": healthLog.LogDate}
+	update := bson.M{
+		"$set": healthLog,
+	}
+
+	_, err := m.fileCollection.UpdateOne(
+		ctx,
+		filter,
+		update)
+	if err != nil {
+		m.logger.Errorf("Error updating mentalh health log: %v", err)
+	}
+
+	return err
+}
 
 

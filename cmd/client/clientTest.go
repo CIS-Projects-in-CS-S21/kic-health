@@ -46,15 +46,17 @@ func main() {
 	userRes, err := usersClient.GetUserByUsername(authCtx, &pbusers.GetUserByUsernameRequest{Username: "testuser"})
 	userID := userRes.User.UserID
 
+	log.Printf("UserID is %v\n", userID)
+
 	addReq :=&pbhealth.AddHealthDataForUserRequest{
-		UserID:   1,
+		UserID:   userID,
 		NewEntry: &pbhealth.MentalHealthLog{
 			LogDate:     &pbcommon.Date{
 				Year:  2021,
 				Month: 4,
 				Day:   5,
 			},
-			Score:       1,
+			Score:       5,
 			JournalName: "I am sad!",
 			UserID:      userID,
 		},
@@ -110,4 +112,63 @@ func main() {
 	log.Printf("Mental Health Score: %v\n", getScoreRes.Score)
 
 	// ----------------------
+
+
+	// Deleting mental health logs for a user fo ra specific date
+
+	// ----------------------
+
+
+	// Deleting all mental logs for a user, regardless of date
+	//deleteReq := &pbhealth.DeleteHealthDataForUserRequest{
+	//	UserID: 29,
+	//	Data:   &pbhealth.DeleteHealthDataForUserRequest_All{true},
+	//}
+	//
+	//deleteRes, err := client.DeleteHealthDataForUser(authCtx, deleteReq)
+	//
+	//if err != nil {
+	//	log.Fatal("cannot delete mental health score for user: ", err)
+	//}
+	//
+	//log.Printf("deleteRes: %v\n", deleteRes)
+	// -----------------------
+
+	// Deleting mental health logs for a user, for a specific date
+	//deleteReq2 := &pbhealth.DeleteHealthDataForUserRequest{
+	//	UserID: 29,
+	//	Data:   &pbhealth.DeleteHealthDataForUserRequest_All{true},
+	//}
+	//
+	//deleteRes2, err := client.DeleteHealthDataForUser(authCtx, deleteReq2)
+	//
+	//if err != nil {
+	//	log.Fatal("cannot delete mental health score for user: ", err)
+	//}
+	//
+	//log.Printf("deleteRes: %v\n", deleteRes2)
+	// -----------------------
+
+	// Updating mental health logs for a user
+
+	updateReq := &pbhealth.UpdateHealthDataForDateRequest{
+		UserID:         userID,
+		DesiredLogInfo: &pbhealth.MentalHealthLog{
+			LogDate:     &pbcommon.Date{
+				Year:  2021,
+				Month: 4,
+				Day:   5,
+			},
+			Score:       5,
+			JournalName: "I am so happy!!!!!!",
+			UserID:      userID,
+		},
+	}
+
+	updateRes, err := client.UpdateHealthDataForDate(authCtx, updateReq)
+	if err != nil {
+		log.Fatal("cannot update mental health score for user: ", err)
+	}
+	log.Printf("updateRes: %v\n", updateRes)
+	// -----------------------
 }
