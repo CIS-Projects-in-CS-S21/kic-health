@@ -137,10 +137,40 @@ func Test_ShouldFailDeleteLog(t *testing.T) {
 	}
 }
 
+func Test_ShouldUpdateLog(t *testing.T) {
+	resp, err := healthService.UpdateHealthDataForDate(context.Background(), &pbhealth.UpdateHealthDataForDateRequest{
+		UserID:         1,
+		DesiredLogInfo: &pbhealth.MentalHealthLog{
+			LogDate:     &pbcommon.Date{
+				Year:  2021,
+				Month: 26,
+				Day:   4,
+			},
+			Score:       5,
+			JournalName: "I am extremely happy!!",
+			UserID:      1,
+		},
+	})
+	if err != nil || resp.Success == false {
+		t.Errorf("Add Health Data should not fail")
+	}
+}
 
-
-
-
-
-
-
+func Test_ShouldFailUpdateLog(t *testing.T) {
+	_, err := healthService.UpdateHealthDataForDate(context.Background(), &pbhealth.UpdateHealthDataForDateRequest{
+		UserID:         -1,
+		DesiredLogInfo: &pbhealth.MentalHealthLog{
+			LogDate:     &pbcommon.Date{
+				Year:  2021,
+				Month: 26,
+				Day:   4,
+			},
+			Score:       5,
+			JournalName: "I am extremely happy!!",
+			UserID:      -1,
+		},
+	})
+	if err == nil {
+		t.Errorf("Add Health Data should not fail")
+	}
+}

@@ -75,8 +75,8 @@ func (m *MockRepository) GetAllMentalHealthLogsByDate(ctx context.Context, userI
 
 func (m *MockRepository) DeleteMentalHealthLogs(ctx context.Context, userID int64, date *pbcommon.Date, all bool) (uint32, error) {
 
-	if userID < 0 || date == nil {
-		return 0, status.Errorf(codes.InvalidArgument, "Invalid Argument for AddMentalHealthLog")
+	if userID < 0 || (date == nil && all == false) {
+		return 0, status.Errorf(codes.InvalidArgument, "Invalid Argument for DeleteMentalHealthLog")
 	}
 
 	var numDeleted uint32
@@ -101,6 +101,10 @@ func (m *MockRepository) DeleteMentalHealthLogs(ctx context.Context, userID int6
 }
 
 func (m *MockRepository) UpdateMentalHealthLogs(ctx context.Context, userID int64, healthLog *pbhealth.MentalHealthLog) error {
+	if userID < 0 || healthLog.LogDate == nil {
+		return status.Errorf(codes.InvalidArgument, "Invalid Argument for UpdateMentalHealthLog")
+	}
+
 	for _, val := range m.logCollection {
 		if val.UserID == userID && val.LogDate.Year == healthLog.LogDate.Year && val.LogDate.Month == healthLog.LogDate.Month && val.LogDate.Day == healthLog.LogDate.Day {
 			val.Score = healthLog.Score
