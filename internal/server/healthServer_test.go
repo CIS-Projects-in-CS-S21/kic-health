@@ -100,7 +100,7 @@ func Test_ShouldUploadLog(t *testing.T) {
 	}
 }
 
-func Test_ShouldFailUploadFile(t *testing.T) {
+func Test_ShouldFailUploadLog(t *testing.T) {
 	_, err := healthService.AddHealthDataForUser(context.Background(), &pbhealth.AddHealthDataForUserRequest{
 		UserID:   -1,
 		NewEntry: &pbhealth.MentalHealthLog{
@@ -112,6 +112,28 @@ func Test_ShouldFailUploadFile(t *testing.T) {
 	})
 	if err == nil {
 		t.Errorf("Add Health Data should fail")
+	}
+}
+
+func Test_ShouldDeleteLog(t *testing.T) {
+	_, err := healthService.DeleteHealthDataForUser(context.Background(), &pbhealth.DeleteHealthDataForUserRequest{
+		UserID: 1,
+		Data:   &pbhealth.DeleteHealthDataForUserRequest_All{true},
+	})
+
+	if err != nil {
+		t.Errorf("Delete Health Data should not fail")
+	}
+}
+
+func Test_ShouldFailDeleteLog(t *testing.T) {
+	_, err := healthService.DeleteHealthDataForUser(context.Background(), &pbhealth.DeleteHealthDataForUserRequest{
+		UserID: -1,
+		Data:   &pbhealth.DeleteHealthDataForUserRequest_All{true},
+	})
+
+	if err == nil {
+		t.Errorf("Delete Health Data should fail")
 	}
 }
 

@@ -74,14 +74,27 @@ func (m *MockRepository) GetAllMentalHealthLogsByDate(ctx context.Context, userI
 }
 
 func (m *MockRepository) DeleteMentalHealthLogs(ctx context.Context, userID int64, date *pbcommon.Date, all bool) (uint32, error) {
+
+	if userID < 0 || date == nil {
+		return 0, status.Errorf(codes.InvalidArgument, "Invalid Argument for AddMentalHealthLog")
+	}
+
 	var numDeleted uint32
 	numDeleted = 0
 
 	for key, val := range m.logCollection {
-		if val.UserID == userID && val.LogDate.Year == date.Year && val.LogDate.Month == date.Month && val.LogDate.Day == date.Day {
-			delete(m.logCollection, key)
-			numDeleted++
+		if all == false {
+			if val.UserID == userID && val.LogDate.Year == date.Year && val.LogDate.Month == date.Month && val.LogDate.Day == date.Day {
+				delete(m.logCollection, key)
+				numDeleted++
+			}
+		} else {
+			if val.UserID == userID {
+				delete(m.logCollection, key)
+				numDeleted++
+			}
 		}
+
 	}
 
 	return numDeleted, nil
