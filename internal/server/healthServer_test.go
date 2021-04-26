@@ -152,7 +152,7 @@ func Test_ShouldUpdateLog(t *testing.T) {
 		},
 	})
 	if err != nil || resp.Success == false {
-		t.Errorf("Add Health Data should not fail")
+		t.Errorf("Update Health Data should not fail")
 	}
 }
 
@@ -171,6 +171,30 @@ func Test_ShouldFailUpdateLog(t *testing.T) {
 		},
 	})
 	if err == nil {
-		t.Errorf("Add Health Data should not fail")
+		t.Errorf("Update Health Data should fail")
+	}
+}
+
+func Test_ShouldGetLog(t *testing.T) {
+	_, err := healthService.GetHealthDataByDate(context.Background(), &pbhealth.GetHealthDataByDateRequest{
+		UserID:  1,
+		LogDate: &pbcommon.Date{
+			Year:  2021,
+			Month: 26,
+			Day:   4,
+		},
+
+	})
+
+	if err != nil {
+		t.Errorf("Get Health Data should not fail")
+	}
+}
+
+func Test_ShouldGetScore(t *testing.T) {
+	_, err := healthService.GetMentalHealthScoreForUser(context.Background(), &pbhealth.GetMentalHealthScoreForUserRequest{UserID: 1})
+
+	if err != nil {
+		t.Errorf("Get SCore shold not fail")
 	}
 }
