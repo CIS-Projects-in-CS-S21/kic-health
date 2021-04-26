@@ -3,25 +3,20 @@ package server_test
 import (
 	"context"
 	"github.com/kic/health/internal/server"
-	"google.golang.org/grpc/reflection"
-	"net"
 	"os"
 	"testing"
 	"time"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"google.golang.org/grpc"
-
-	"github.com/kic/health/internal/setup"
 	"github.com/kic/health/pkg/database"
 	"github.com/kic/health/pkg/logging"
 	pbcommon "github.com/kic/health/pkg/proto/common"
 	pbhealth "github.com/kic/health/pkg/proto/health"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var log *zap.SugaredLogger
-var client pbhealth.HealthTrackingClient
+var healthService *server.HealthService
 
 const testDataPath = "../../test_data"
 
@@ -35,6 +30,28 @@ func prepDBForTests(db database.Repository) {
 			},
 			Score:       5,
 			JournalName: "I am happy!",
+			UserID:      1,
+		},
+
+		{
+			LogDate:     &pbcommon.Date{
+				Year:  2021,
+				Month: 4,
+				Day:   26,
+			},
+			Score:       2,
+			JournalName: "I am ok",
+			UserID:      1,
+		},
+
+		{
+			LogDate:     &pbcommon.Date{
+				Year:  2021,
+				Month: 4,
+				Day:   23,
+			},
+			Score:       -5,
+			JournalName: "I am sad :(",
 			UserID:      1,
 		},
 	}
@@ -52,52 +69,132 @@ func TestMain(m *testing.M) {
 	time.Sleep(1 * time.Second)
 	log = logging.CreateLogger(zapcore.DebugLevel)
 
-	repo, mongoClient := setup.DBRepositorySetup(log, "test-health")
+	mp := make(map[int]*pbhealth.MentalHealthLog)
+	repo := database.NewMockRepository(mp, log)
 
 	prepDBForTests(repo)
 
-	ListenAddress := "localhost:50051"
-
-	listener, err := net.Listen("tcp", ListenAddress)
-	if err != nil {
-		log.Fatalf("Unable to listen on %v: %v", ListenAddress, err)
-	}
-
-	grpcServer := grpc.NewServer()
-
-	mediaService := server.NewHealthService(repo, log)
-	pbhealth.RegisterHealthTrackingServer(grpcServer, mediaService)
-
-	reflection.Register(grpcServer)
-
-	go func() {
-		defer listener.Close()
-		if err := grpcServer.Serve(listener); err != nil {
-			log.Fatalf("Failed to serve: %v", err)
-		}
-	}()
-
-	log.Infof("Server started on %v", ListenAddress)
-
-	defer grpcServer.Stop()
-	defer mongoClient.Disconnect(context.Background())
-
-	conn, err := grpc.Dial(ListenAddress, grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("fail to dial: %v", err)
-	}
-	defer conn.Close()
-	client = pbhealth.NewHealthTrackingClient(conn)
+	healthService = server.NewHealthService(repo, log)
 
 	exitVal := m.Run()
 
 	os.Exit(exitVal)
 }
 
+func Test_ShouldUploadLog(t *testing.T) {
+	resp, err := healthService.AddHealthDataForUser(context.Background(), &pbhealth.AddHealthDataForUserRequest{
+		UserID:   1,
+		NewEntry: &pbhealth.MentalHealthLog{
+			LogDate:     &pbcommon.Date{
+				Year:  2021,
+				Month: 26,
+				Day:   4,
+			},
+			Score:       0,
+			JournalName: "I am neutral",
+			UserID:      1,
+		},
+	})
+	if err != nil || resp.Success == false {
+		t.Errorf("Add Health Data should not fail")
+	}
+}
 
+func Test_ShouldFailUploadLog(t *testing.T) {
+	_, err := healthService.AddHealthDataForUser(context.Background(), &pbhealth.AddHealthDataForUserRequest{
+		UserID:   -1,
+		NewEntry: &pbhealth.MentalHealthLog{
+			LogDate:     nil,
+			Score:       0,
+			JournalName: "",
+			UserID:      -1,
+		},
+	})
+	if err == nil {
+		t.Errorf("Add Health Data should fail")
+	}
+}
 
+func Test_ShouldDeleteLog(t *testing.T) {
+	_, err := healthService.DeleteHealthDataForUser(context.Background(), &pbhealth.DeleteHealthDataForUserRequest{
+		UserID: 1,
+		Data:   &pbhealth.DeleteHealthDataForUserRequest_All{true},
+	})
 
+	if err != nil {
+		t.Errorf("Delete Health Data should not fail")
+	}
+}
 
+func Test_ShouldFailDeleteLog(t *testing.T) {
+	_, err := healthService.DeleteHealthDataForUser(context.Background(), &pbhealth.DeleteHealthDataForUserRequest{
+		UserID: -1,
+		Data:   &pbhealth.DeleteHealthDataForUserRequest_All{true},
+	})
 
+	if err == nil {
+		t.Errorf("Delete Health Data should fail")
+	}
+}
 
+func Test_ShouldUpdateLog(t *testing.T) {
+	resp, err := healthService.UpdateHealthDataForDate(context.Background(), &pbhealth.UpdateHealthDataForDateRequest{
+		UserID:         1,
+		DesiredLogInfo: &pbhealth.MentalHealthLog{
+			LogDate:     &pbcommon.Date{
+				Year:  2021,
+				Month: 26,
+				Day:   4,
+			},
+			Score:       5,
+			JournalName: "I am extremely happy!!",
+			UserID:      1,
+		},
+	})
+	if err != nil || resp.Success == false {
+		t.Errorf("Update Health Data should not fail")
+	}
+}
 
+func Test_ShouldFailUpdateLog(t *testing.T) {
+	_, err := healthService.UpdateHealthDataForDate(context.Background(), &pbhealth.UpdateHealthDataForDateRequest{
+		UserID:         -1,
+		DesiredLogInfo: &pbhealth.MentalHealthLog{
+			LogDate:     &pbcommon.Date{
+				Year:  2021,
+				Month: 26,
+				Day:   4,
+			},
+			Score:       5,
+			JournalName: "I am extremely happy!!",
+			UserID:      -1,
+		},
+	})
+	if err == nil {
+		t.Errorf("Update Health Data should fail")
+	}
+}
+
+func Test_ShouldGetLog(t *testing.T) {
+	_, err := healthService.GetHealthDataByDate(context.Background(), &pbhealth.GetHealthDataByDateRequest{
+		UserID:  1,
+		LogDate: &pbcommon.Date{
+			Year:  2021,
+			Month: 26,
+			Day:   4,
+		},
+
+	})
+
+	if err != nil {
+		t.Errorf("Get Health Data should not fail")
+	}
+}
+
+func Test_ShouldGetScore(t *testing.T) {
+	_, err := healthService.GetMentalHealthScoreForUser(context.Background(), &pbhealth.GetMentalHealthScoreForUserRequest{UserID: 1})
+
+	if err != nil {
+		t.Errorf("Get SCore shold not fail")
+	}
+}
